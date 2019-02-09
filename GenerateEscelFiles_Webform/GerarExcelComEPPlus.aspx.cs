@@ -1,59 +1,20 @@
-﻿using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Web;
-using System.Web.Mvc;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
-namespace GenerateExcelFiles.Controllers
+namespace GenerateEscelFiles_Webform
 {
-    public class HomeController : Controller
+    public partial class GerarExcelComEPPlus : System.Web.UI.Page
     {
-        public ActionResult Index()
+        protected void Page_Load(object sender, EventArgs e)
         {
-            return View();
-        }
-
-        /// <summary>
-        /// Retorna um arquivo excel com o NPOIS sem salvar arquivo em disco rigido (gerado em memory e retornado para navegador).
-        /// </summary>
-        /// <returns>
-        /// Retorna um arquivo excel. 
-        /// Mime: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        /// Extensão:.xlsx
-        /// </returns>
-        /// <remarks>Planilha de exemplo retirada de: https://github.com/tonyqus/npoi/blob/master/examples/xssf/BigGridTest/Program.cs</remarks>
-        public FileResult GerarExcelComNPOI()
-        {
-            IWorkbook workbook = new XSSFWorkbook();
-            ISheet worksheet = workbook.CreateSheet("Sheet1");
-
-            for (int rownum = 0; rownum < 10000; rownum++)
-            {
-                IRow row = worksheet.CreateRow(rownum);
-                for (int celnum = 0; celnum < 20; celnum++)
-                {
-                    ICell Cell = row.CreateCell(celnum);
-                    Cell.SetCellValue("Cell: Row-" + rownum + ";CellNo:" + celnum);
-                }
-            }
-
-            MemoryStream ms = new MemoryStream();
-            using (MemoryStream tempStream = new MemoryStream())
-            {
-                workbook.Write(tempStream);
-                var byteArray = tempStream.ToArray();
-                ms.Write(byteArray, 0, byteArray.Length);
-                return File(byteArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Excel.xlsx");
-            }
+            GerarXLSXComEPPlus();
         }
 
         /// <summary>
@@ -65,7 +26,7 @@ namespace GenerateExcelFiles.Controllers
         /// Extensão:.xlsx
         /// </returns>
         /// <remarks>Planilha de exemplo retirada de: https://github.com/JanKallman/EPPlus/blob/master/SampleApp/Sample1.cs</remarks>
-        public FileResult GerarExcelComEPPlus()
+        private void GerarXLSXComEPPlus()
         {
             using (var package = new ExcelPackage())
             {
@@ -157,8 +118,11 @@ namespace GenerateExcelFiles.Controllers
 
                 //Gerar ByteArray do arquivo para retornar para navegador
                 var fileByteArray = package.GetAsByteArray();
-
-                return File(fileByteArray, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Excel.xlsx");
+                Response.Clear();
+                Response.ContentType = "application/force-download";
+                Response.AddHeader("content-disposition", "attachment;    filename = Excel.xls");
+                Response.BinaryWrite(fileByteArray);
+                Response.End();
             }
         }
     }
